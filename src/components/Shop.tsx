@@ -218,53 +218,108 @@ interface ShopCardProps {
 }
 
 const ShopCard: React.FC<ShopCardProps> = ({ item, equipped, canAfford, onBuy }) => {
+  // Theme styling based on category
+  const theme = {
+    weapon: {
+      bg: "#f0f9ff",
+      border: equipped ? "3px solid var(--color-secondary)" : "3px solid #ecd6bc",
+      tagBg: "#e0f2fe",
+      tagText: "var(--color-secondary-dark)",
+      equippedBg: "rgba(58, 166, 235, 0.1)",
+      equippedText: "var(--color-secondary-dark)",
+      equippedBorder: "2px solid var(--color-secondary)"
+    },
+    armor: {
+      bg: "#f0fdf4",
+      border: equipped ? "3px solid var(--color-primary)" : "3px solid #ecd6bc",
+      tagBg: "#dcfce7",
+      tagText: "var(--color-primary-dark)",
+      equippedBg: "rgba(116, 195, 60, 0.1)",
+      equippedText: "var(--color-primary-dark)",
+      equippedBorder: "2px solid var(--color-primary)"
+    },
+    scroll: {
+      bg: "#faf5ff",
+      border: equipped ? "3px solid #8b5cf6" : "3px solid #ecd6bc",
+      tagBg: "#f3e8ff",
+      tagText: "#7c3aed",
+      equippedBg: "rgba(139, 92, 246, 0.1)",
+      equippedText: "#7c3aed",
+      equippedBorder: "2px solid #8b5cf6"
+    }
+  }[item.category];
+
   return (
     <div 
       style={{
-        background: "rgba(18, 16, 14, 0.6)",
-        border: equipped ? "1px solid var(--color-gold)" : "1px solid rgba(212, 175, 55, 0.1)",
-        padding: "1rem",
-        borderRadius: "8px",
+        background: theme.bg,
+        border: theme.border,
+        padding: "1.25rem 1rem",
+        borderRadius: "16px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         gap: "0.75rem",
-        boxShadow: equipped ? "inset 0 0 10px rgba(212, 175, 55, 0.08)" : "none",
-        transition: "all 0.2s ease"
+        boxShadow: equipped ? "inset 0 0 10px rgba(141, 110, 99, 0.05)" : "none",
+        transition: "all 0.2s ease",
+        transform: equipped ? "translateY(-1px)" : "none"
       }}
     >
       <div style={{ display: "flex", gap: "0.75rem", alignItems: "start" }}>
-        <span style={{ fontSize: "2rem", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))" }}>
+        <span style={{ fontSize: "2rem", filter: "drop-shadow(0 2px 4px rgba(141,110,99,0.15))" }}>
           {item.icon}
         </span>
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-            <h5 style={{ fontSize: "0.95rem", color: "var(--color-text-parchment)", fontFamily: "var(--font-sans)", fontWeight: "bold" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: "0.25rem" }}>
+            <h5 style={{ fontSize: "0.95rem", color: "var(--color-text-dark)", fontFamily: "var(--font-display)", fontWeight: "bold" }}>
               {item.name}
             </h5>
-            <span style={{ fontSize: "0.8rem", color: "var(--color-text-gold)", fontWeight: "bold", background: "rgba(212, 175, 55, 0.1)", padding: "0.1rem 0.4rem", borderRadius: "4px", border: "1px solid rgba(212,175,55,0.2)" }}>
+            <span 
+              style={{ 
+                fontSize: "0.75rem", 
+                color: theme.tagText, 
+                fontWeight: "bold", 
+                background: theme.tagBg, 
+                padding: "0.15rem 0.45rem", 
+                borderRadius: "6px", 
+                border: `1px solid ${theme.tagText}30` 
+              }}
+            >
               {item.bonusText}
             </span>
           </div>
-          <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
+          <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.35rem", fontWeight: "bold" }}>
             {item.description}
           </p>
         </div>
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.25rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "var(--color-text-gold)", fontSize: "0.9rem", fontWeight: "bold" }}>
-          <Coins size={14} className="gold-icon" /> {item.cost}g
+        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "#d9480f", fontSize: "0.95rem", fontWeight: "bold" }}>
+          <Coins size={15} className="gold-icon" /> {item.cost}g
         </div>
 
         {equipped ? (
-          <span style={{ fontSize: "0.8rem", color: "var(--color-gold)", display: "flex", alignItems: "center", gap: "0.2rem", padding: "0.4rem 0.8rem", background: "rgba(212, 175, 55, 0.08)", borderRadius: "6px", border: "1px solid rgba(212,175,55,0.2)", fontWeight: "bold" }}>
+          <span 
+            style={{ 
+              fontSize: "0.8rem", 
+              color: theme.equippedText, 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "0.25rem", 
+              padding: "0.4rem 0.8rem", 
+              background: theme.equippedBg, 
+              borderRadius: "8px", 
+              border: theme.equippedBorder, 
+              fontWeight: "bold" 
+            }}
+          >
             <Check size={12} /> Equipped
           </span>
         ) : (
           <button 
             className="rpg-btn rpg-btn-primary" 
-            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }} 
+            style={{ padding: "0.45rem 0.95rem", fontSize: "0.8rem", boxShadow: "0 3px 0px #c69c6d" }} 
             onClick={onBuy}
             disabled={!canAfford}
           >

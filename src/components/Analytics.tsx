@@ -57,7 +57,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
       subjectMap[log.subject] = (subjectMap[log.subject] || 0) + log.duration_minutes;
     });
 
-    const colors = ["#d4af37", "#60a5fa", "#34d399", "#a78bfa", "#f472b6", "#e25822"];
+    const colors = ["var(--color-primary)", "var(--color-secondary)", "var(--color-gold)", "var(--color-ember)", "#a78bfa", "#f472b6"];
 
     return Object.keys(subjectMap).map((sub, idx) => ({
       name: sub,
@@ -77,7 +77,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
         <div className="rpg-panel" style={{ padding: "1.25rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase" }}>Total Study Time</span>
-            <Calendar size={16} style={{ color: "var(--color-gold)" }} />
+            <Calendar size={16} style={{ color: "var(--color-secondary)" }} />
           </div>
           <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{totalHours} <span style={{ fontSize: "0.9rem", color: "var(--color-text-muted)" }}>hrs</span></h3>
           <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>{totalFocusMinutes} minutes logged</p>
@@ -86,7 +86,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
         <div className="rpg-panel" style={{ padding: "1.25rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", textTransform: "uppercase" }}>Sessions Completed</span>
-            <BookOpen size={16} style={{ color: "var(--color-gold)" }} />
+            <BookOpen size={16} style={{ color: "var(--color-primary)" }} />
           </div>
           <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{totalSessions} <span style={{ fontSize: "0.9rem", color: "var(--color-text-muted)" }}>quests</span></h3>
           <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>Focus cycles completed</p>
@@ -98,7 +98,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
             <Activity size={16} style={{ color: "var(--color-gold)" }} />
           </div>
           <h3 style={{ fontSize: "1.8rem", marginTop: "0.5rem" }}>{avgRating} <span style={{ fontSize: "0.9rem", color: "var(--color-text-muted)" }}>/ 5.0</span></h3>
-          <div style={{ fontSize: "0.75rem", color: "var(--color-gold-bright)", marginTop: "0.25rem" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--color-gold)", marginTop: "0.25rem" }}>
             {"★".repeat(Math.round(parseFloat(avgRating)))}
             {"☆".repeat(5 - Math.round(parseFloat(avgRating)))}
           </div>
@@ -131,10 +131,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
                   <XAxis dataKey="date" stroke="var(--color-text-muted)" fontSize={11} tickLine={false} />
                   <YAxis stroke="var(--color-text-muted)" fontSize={11} tickLine={false} label={{ value: "Minutes", angle: -90, position: "insideLeft", style: { fill: "var(--color-text-muted)", fontSize: 11 } }} />
                   <Tooltip 
-                    contentStyle={{ background: "var(--bg-charcoal)", border: "var(--border-rpg)", borderRadius: "6px" }}
-                    labelStyle={{ color: "var(--color-text-parchment)", fontWeight: "bold" }}
+                    contentStyle={{ background: "#ffffff", border: "2px solid #ecd6bc", borderRadius: "10px" }}
+                    labelStyle={{ color: "var(--color-text-dark)", fontWeight: "bold" }}
                   />
-                  <Bar dataKey="minutes" fill="var(--color-gold)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="minutes" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -165,7 +165,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
                     </Pie>
                     <Tooltip 
                       formatter={(val: any) => [`${val} min`, "Study Time"]}
-                      contentStyle={{ background: "var(--bg-charcoal)", border: "var(--border-rpg)", borderRadius: "6px" }}
+                      contentStyle={{ background: "#ffffff", border: "2px solid #ecd6bc", borderRadius: "10px" }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -199,7 +199,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", textAlign: "left" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(212, 175, 55, 0.15)", color: "var(--color-text-muted)" }}>
+                <tr style={{ borderBottom: "3px solid #ecd6bc", color: "var(--color-text-dark)", fontWeight: "bold" }}>
                   <th style={{ padding: "0.75rem" }}>Date</th>
                   <th style={{ padding: "0.75rem" }}>Subject</th>
                   <th style={{ padding: "0.75rem" }}>Stat Type</th>
@@ -217,20 +217,40 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
                     hour: "2-digit",
                     minute: "2-digit",
                   });
+                  
+                  // Category specific colors
+                  const badgeStyle = {
+                    INT: { bg: "#e0f2fe", border: "#7dd3fc", color: "#0369a1" },
+                    WIS: { bg: "#f3e8ff", border: "#d8b4fe", color: "#6b21a8" },
+                    STR: { bg: "#fee2e2", border: "#fca5a5", color: "#b91c1c" },
+                    DEX: { bg: "#dcfce7", border: "#86efac", color: "#15803d" },
+                    CHA: { bg: "#fce7f3", border: "#fbcfe8", color: "#be185d" },
+                  }[log.stat_category] || { bg: "#f1ede2", border: "#ecd6bc", color: "var(--color-text-dark)" };
+
                   return (
-                    <tr key={log.id} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.02)", transition: "background 0.2s" }} className="table-row-hover">
+                    <tr key={log.id} style={{ borderBottom: "1px solid #ecd6bc", transition: "background 0.2s" }} className="table-row-hover">
                       <td style={{ padding: "0.75rem", color: "var(--color-text-muted)" }}>{date}</td>
-                      <td style={{ padding: "0.75rem", fontWeight: "bold" }}>{log.subject}</td>
+                      <td style={{ padding: "0.75rem", fontWeight: "bold", color: "var(--color-text-dark)" }}>{log.subject}</td>
                       <td style={{ padding: "0.75rem" }}>
-                        <span style={{ fontSize: "0.75rem", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", padding: "0.1rem 0.3rem", borderRadius: "4px", color: "var(--color-text-gold)" }}>
+                        <span 
+                          style={{ 
+                            fontSize: "0.75rem", 
+                            background: badgeStyle.bg, 
+                            border: `1px solid ${badgeStyle.border}`, 
+                            padding: "0.2rem 0.4rem", 
+                            borderRadius: "6px", 
+                            color: badgeStyle.color,
+                            fontWeight: "bold"
+                          }}
+                        >
                           {log.stat_category}
                         </span>
                       </td>
-                      <td style={{ padding: "0.75rem" }}>{log.duration_minutes} mins</td>
-                      <td style={{ padding: "0.75rem", color: "var(--color-gold-bright)" }}>
+                      <td style={{ padding: "0.75rem", color: "var(--color-text-dark)" }}>{log.duration_minutes} mins</td>
+                      <td style={{ padding: "0.75rem", color: "var(--color-gold)", fontSize: "0.9rem" }}>
                         {"★".repeat(log.focus_rating)}
                       </td>
-                      <td style={{ padding: "0.75rem", color: "var(--color-success)", fontWeight: "bold" }}>+{log.xp_gained} XP</td>
+                      <td style={{ padding: "0.75rem", color: "var(--color-primary-dark)", fontWeight: "bold" }}>+{log.xp_gained} XP</td>
                       <td style={{ padding: "0.75rem", color: "var(--color-text-muted)", fontStyle: "italic", maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={log.notes}>
                         {log.notes || "No notes inscribed."}
                       </td>
@@ -245,7 +265,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ logs }) => {
 
       <style>{`
         .table-row-hover:hover {
-          background: rgba(212, 175, 55, 0.02);
+          background: rgba(116, 195, 60, 0.04);
         }
       `}</style>
     </div>

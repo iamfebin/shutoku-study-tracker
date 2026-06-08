@@ -57,7 +57,7 @@ function App() {
       angle: 60,
       spread: 55,
       origin: { x: 0 },
-      colors: ["#d4af37", "#ffffff", "#ffd700"]
+      colors: ["#74c33c", "#35a0df", "#fec31e", "#ff7043", "#a78bfa"]
     });
     // Right burst
     confetti({
@@ -65,7 +65,7 @@ function App() {
       angle: 120,
       spread: 55,
       origin: { x: 1 },
-      colors: ["#d4af37", "#ffffff", "#ffd700"]
+      colors: ["#74c33c", "#35a0df", "#fec31e", "#ff7043", "#a78bfa"]
     });
   };
 
@@ -282,8 +282,8 @@ function App() {
           height: "100vh", 
           width: "100vw",
           padding: "2rem",
-          background: "var(--bg-obsidian)",
-          color: "var(--color-text-parchment)",
+          background: "#f7f5ee",
+          color: "var(--color-text-dark)",
           textAlign: "center"
         }}
       >
@@ -313,10 +313,10 @@ function App() {
           justifyContent: "center", 
           height: "100vh", 
           width: "100vw",
-          background: "var(--bg-obsidian)"
+          background: "#f7f5ee"
         }}
       >
-        <div style={{ fontSize: "1.2rem", fontFamily: "var(--font-display)", color: "var(--color-gold)", animation: "pulseGlow 1.5s infinite" }}>
+        <div style={{ fontSize: "1.3rem", fontFamily: "var(--font-display)", color: "var(--color-primary)", animation: "pulseGlow 1.5s infinite", fontWeight: "bold" }}>
           📜 Decrypting Chronicles...
         </div>
       </div>
@@ -388,15 +388,15 @@ function App() {
         <header className="header-bar">
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <span style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--color-text-muted)" }}>Current Camp:</span>
-            <span style={{ fontSize: "0.95rem", fontFamily: "var(--font-display)", color: "var(--color-text-parchment)" }}>
+            <span style={{ fontSize: "0.95rem", fontFamily: "var(--font-display)", color: "var(--color-text-dark)", fontWeight: "bold" }}>
               📍 {currentNodeName}
             </span>
           </div>
 
           <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Award size={16} style={{ color: "var(--color-gold)" }} />
-              <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>Lvl {profile.level}</span>
+              <Award size={16} style={{ color: "var(--color-ember)" }} />
+              <span style={{ fontSize: "0.9rem", color: "var(--color-text-dark)", fontWeight: "bold" }}>Lvl {profile.level}</span>
             </div>
             <div className="gold-badge">
               <Coins size={16} className="gold-icon" /> {profile.gold}g

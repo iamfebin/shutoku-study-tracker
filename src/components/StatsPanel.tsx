@@ -2,6 +2,7 @@ import React from "react";
 import { Shield, Sword, Scroll, User, Award, Coins } from "lucide-react";
 import { HeroProfile } from "../services/db";
 import { getXpNeeded } from "../utils/rpg";
+import baseIdle from "../assets/cozy/base_idle_strip9.png";
 
 interface StatsPanelProps {
   profile: HeroProfile;
@@ -65,26 +66,20 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ profile }) => {
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         {/* Character Card Head */}
         <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <div 
-            style={{ 
-              width: "60px", 
-              height: "60px", 
-              borderRadius: "50%", 
-              background: "linear-gradient(135deg, var(--bg-charcoal-light) 0%, var(--bg-charcoal) 100%)",
-              border: "var(--border-rpg-bright)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "var(--shadow-glow)",
-              fontSize: "1.5rem"
-            }}
-          >
-            🧙‍♂️
+          <div className="hero-box">
+            <div 
+              className="pixel-hero-idle" 
+              style={{ 
+                backgroundImage: `url(${baseIdle})`,
+                transform: "scale(3.5)",
+                marginTop: "0.25rem"
+              }} 
+            />
           </div>
           <div>
-            <h4 style={{ fontSize: "1.1rem", fontFamily: "var(--font-display)" }}>Shutoku Scholar</h4>
-            <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <Award size={12} style={{ color: "var(--color-gold)" }} /> Level {profile.level} Pathfinder
+            <h4 style={{ fontSize: "1.2rem", fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>Shutoku Scholar</h4>
+            <p style={{ fontSize: "0.85rem", color: "var(--color-text-dark)", display: "flex", alignItems: "center", gap: "0.25rem", fontWeight: "bold" }}>
+              <Award size={14} style={{ color: "var(--color-ember)" }} /> Level {profile.level} Pathfinder
             </p>
           </div>
         </div>
@@ -130,17 +125,18 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ profile }) => {
               style={{ 
                 display: "flex", 
                 alignItems: "center", 
-                justifyContent: "between", 
-                padding: "0.5rem 0.75rem", 
-                background: "rgba(0,0,0,0.3)", 
-                borderRadius: "6px",
-                border: "1px solid rgba(212,175,55,0.08)"
+                justifyContent: "space-between", 
+                padding: "0.6rem 0.85rem", 
+                background: "#fffbf5", 
+                borderRadius: "10px",
+                border: "2px solid #ecd6bc",
+                boxShadow: "0 2px 0px rgba(141, 110, 99, 0.04)"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem" }}>
-                <Sword size={14} style={{ color: "var(--color-gold-dim)" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem" }}>
+                <Sword size={15} style={{ color: "var(--color-secondary)" }} />
                 <span style={{ color: "var(--color-text-muted)" }}>Weapon:</span>
-                <span style={{ color: profile.equipped_weapon ? "var(--color-text-gold)" : "var(--color-text-muted)", fontStyle: profile.equipped_weapon ? "normal" : "italic" }}>
+                <span style={{ color: profile.equipped_weapon ? "var(--color-secondary)" : "var(--color-text-muted)", fontWeight: profile.equipped_weapon ? "bold" : "bold", fontStyle: profile.equipped_weapon ? "normal" : "italic" }}>
                   {profile.equipped_weapon || "Empty Slot"}
                 </span>
               </div>
@@ -150,17 +146,18 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ profile }) => {
               style={{ 
                 display: "flex", 
                 alignItems: "center", 
-                justifyContent: "between", 
-                padding: "0.5rem 0.75rem", 
-                background: "rgba(0,0,0,0.3)", 
-                borderRadius: "6px",
-                border: "1px solid rgba(212,175,55,0.08)"
+                justifyContent: "space-between", 
+                padding: "0.6rem 0.85rem", 
+                background: "#fffbf5", 
+                borderRadius: "10px",
+                border: "2px solid #ecd6bc",
+                boxShadow: "0 2px 0px rgba(141, 110, 99, 0.04)"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem" }}>
-                <Shield size={14} style={{ color: "var(--color-gold-dim)" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem" }}>
+                <Shield size={15} style={{ color: "var(--color-primary)" }} />
                 <span style={{ color: "var(--color-text-muted)" }}>Armor:</span>
-                <span style={{ color: profile.equipped_armor ? "var(--color-text-gold)" : "var(--color-text-muted)", fontStyle: profile.equipped_armor ? "normal" : "italic" }}>
+                <span style={{ color: profile.equipped_armor ? "var(--color-text-green)" : "var(--color-text-muted)", fontWeight: profile.equipped_armor ? "bold" : "bold", fontStyle: profile.equipped_armor ? "normal" : "italic" }}>
                   {profile.equipped_armor || "Empty Slot"}
                 </span>
               </div>
@@ -170,17 +167,18 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ profile }) => {
               style={{ 
                 display: "flex", 
                 alignItems: "center", 
-                justifyContent: "between", 
-                padding: "0.5rem 0.75rem", 
-                background: "rgba(0,0,0,0.3)", 
-                borderRadius: "6px",
-                border: "1px solid rgba(212,175,55,0.08)"
+                justifyContent: "space-between", 
+                padding: "0.6rem 0.85rem", 
+                background: "#fffbf5", 
+                borderRadius: "10px",
+                border: "2px solid #ecd6bc",
+                boxShadow: "0 2px 0px rgba(141, 110, 99, 0.04)"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem" }}>
-                <Scroll size={14} style={{ color: "var(--color-gold-dim)" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem" }}>
+                <Scroll size={15} style={{ color: "#a78bfa" }} />
                 <span style={{ color: "var(--color-text-muted)" }}>Accessory:</span>
-                <span style={{ color: profile.equipped_scroll ? "var(--color-text-gold)" : "var(--color-text-muted)", fontStyle: profile.equipped_scroll ? "normal" : "italic" }}>
+                <span style={{ color: profile.equipped_scroll ? "#8b5cf6" : "var(--color-text-muted)", fontWeight: profile.equipped_scroll ? "bold" : "bold", fontStyle: profile.equipped_scroll ? "normal" : "italic" }}>
                   {profile.equipped_scroll || "Empty Slot"}
                 </span>
               </div>

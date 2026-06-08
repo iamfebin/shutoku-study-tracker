@@ -1,41 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Color Tokens - Dark Fantasy Palette */
-  --bg-obsidian: #080706;
-  --bg-charcoal: #12100e;
-  --bg-charcoal-medium: #1b1714;
-  --bg-charcoal-light: #28221d;
+  /* Color Tokens - Gardenscapes-style Bubbly Light RPG Theme */
+  --bg-sky: #e0f2fe; /* Light sky blue background tint */
+  --bg-grass: #f0fdf4; /* Soft meadow green for container backgrounds */
+  --bg-card: #ffffff; /* Clean bright white for cards */
+  --bg-card-warm: #fffdf5; /* Warm sunny cream for special highlights */
   
-  --color-gold: #d4af37;
-  --color-gold-bright: #ffd700;
-  --color-gold-dim: #9b7e28;
-  --color-gold-glow: rgba(212, 175, 55, 0.25);
+  --color-primary: #74c33c; /* Grassy Meadow Green */
+  --color-primary-dark: #5b9e2c; /* Grassy Green outline/shadow */
+  --color-primary-light: #bbf7d0;
   
-  --color-ember: #e25822;
-  --color-ember-glow: rgba(226, 88, 34, 0.3);
+  --color-secondary: #3aa6eb; /* Bright Sky Blue */
+  --color-secondary-dark: #2482c3; /* Sky Blue outline/shadow */
   
-  --color-text-parchment: #e9e4d9;
-  --color-text-muted: #9c9284;
-  --color-text-gold: #ffd65a;
+  --color-gold: #fec31e; /* Sunny Dandelion Gold */
+  --color-gold-dark: #cd9c11; /* Gold outline/shadow */
+  --color-gold-bright: #ffdf4d;
   
-  --color-success: #52a447;
-  --color-success-glow: rgba(82, 164, 71, 0.35);
-  --color-danger: #cf4343;
+  --color-ember: #ff7043; /* Focus orange-red */
+  --color-ember-dark: #d84315;
+  --color-ember-glow: rgba(255, 112, 67, 0.2);
   
-  /* Layout Tokens */
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  --border-rpg: 1px solid rgba(212, 175, 55, 0.2);
-  --border-rpg-bright: 1px solid rgba(212, 175, 55, 0.6);
-  --border-rpg-ember: 1px solid rgba(226, 88, 34, 0.4);
-
-  --font-display: 'Cinzel', serif;
-  --font-sans: 'Outfit', sans-serif;
+  --color-text-dark: #3c322b; /* Friendly soft wood-charcoal for maximum readability */
+  --color-text-muted: #8d7e75; /* Soft wood-brown for labels */
+  --color-text-green: #4d8825; /* Accent green text */
+  --color-text-gold: #b37d14; /* Accent gold text */
   
-  --shadow-glow: 0 0 15px var(--color-gold-glow);
-  --shadow-glow-ember: 0 0 15px var(--color-ember-glow);
+  --color-success: #4caf50;
+  --color-danger: #f44336;
+  
+  /* Cozy Wood / Clay Outlines */
+  --border-wood-thick: 3px solid #8d6e63; /* Friendly brown board border */
+  --border-wood-light: 2px solid #ecd6bc; /* Soft card border */
+  --border-wood-accent: 2px solid #c69c6d;
+  
+  /* Bubbly Layout Tokens */
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px; /* Bubbly card corners */
+  
+  --font-display: 'Fredoka', sans-serif; /* Round friendly display headers */
+  --font-sans: 'Nunito', sans-serif; /* Friendly soft body sans-serif */
+  
+  --shadow-cozy: 0 8px 0px rgba(141, 110, 99, 0.12); /* Thick flat wood shadow */
+  --shadow-button-primary: 0 4px 0px var(--color-primary-dark);
+  --shadow-button-secondary: 0 4px 0px #c69c6d;
+  --shadow-button-danger: 0 4px 0px var(--color-ember-dark);
+  --shadow-panel: 0 10px 25px rgba(141, 110, 99, 0.08), 0 4px 10px rgba(0, 0, 0, 0.02);
 }
 
 * {
@@ -45,9 +57,10 @@
 }
 
 body {
-  background-color: var(--bg-obsidian);
-  color: var(--color-text-parchment);
+  background-color: #f7f5ee; /* Soft warm ivory paper look */
+  color: var(--color-text-dark);
   font-family: var(--font-sans);
+  font-weight: 600;
   overflow: hidden;
   height: 100vh;
   width: 100vw;
@@ -56,114 +69,123 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  letter-spacing: 0.05em;
-  color: var(--color-gold);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-weight: 700;
+  color: var(--color-text-dark);
+  letter-spacing: 0.01em;
 }
 
-/* Custom Scrollbars */
+/* Scrollbars - Bubbly Wood Style */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-charcoal);
+  background: #f1ede2;
+  border-radius: var(--border-radius-sm);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gold-dim);
+  background: #c69c6d;
+  border: 2px solid #f1ede2;
   border-radius: var(--border-radius-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gold);
+  background: #8d6e63;
 }
 
-/* Global Layout */
+/* Global App Grid */
 .app-container {
   display: grid;
   grid-template-columns: 260px 1fr;
   height: 100vh;
   width: 100vw;
+  background-color: #f7f5ee;
   background-image: 
-    radial-gradient(circle at 50% 50%, rgba(27, 23, 20, 0.4) 0%, rgba(8, 7, 6, 0.95) 100%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E");
+    radial-gradient(circle at 10% 20%, rgba(220, 252, 231, 0.5) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(224, 242, 254, 0.5) 0%, transparent 40%);
 }
 
-/* Sidebar Navigation */
+/* Sidebar Navigation - Styled like a garden menu placard */
 .sidebar {
-  background: var(--bg-charcoal);
-  border-right: var(--border-rpg);
+  background: #fffdf5; /* Warm sunshine white */
+  border-right: 4px solid #ecd6bc;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: 1.75rem 1.25rem;
   z-index: 10;
-  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6);
+  box-shadow: 4px 0 15px rgba(141, 110, 99, 0.05);
 }
 
 .sidebar-header {
   text-align: center;
   margin-bottom: 2rem;
-  border-bottom: var(--border-rpg);
+  border-bottom: 2px solid #ecd6bc;
   padding-bottom: 1.5rem;
 }
 
 .sidebar-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, var(--color-gold-bright) 0%, var(--color-gold) 60%, #8a640f 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3));
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  font-family: var(--font-display);
+  color: var(--color-primary);
+  filter: drop-shadow(0 2px 2px rgba(116, 195, 60, 0.15));
+  margin-bottom: 0.1rem;
 }
 
 .sidebar-subtitle {
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--color-text-muted);
-  margin-top: 0.25rem;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .nav-links {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.8rem;
   flex-grow: 1;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.85rem 1.25rem;
+  gap: 0.75rem;
+  padding: 0.85rem 1.15rem;
   border-radius: var(--border-radius-md);
-  color: var(--color-text-muted);
+  color: var(--color-text-dark);
+  background: transparent;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 2px solid transparent;
   font-family: var(--font-display);
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: left;
 }
 
 .nav-item:hover {
-  color: var(--color-text-parchment);
-  background: rgba(212, 175, 55, 0.05);
-  border: 1px solid rgba(212, 175, 55, 0.1);
-  transform: translateX(4px);
+  color: var(--color-primary-dark);
+  background: #f0fdf4;
+  border: 2px solid var(--color-primary-light);
+  transform: scale(1.03) translateY(-1px);
 }
 
 .nav-item.active {
-  color: var(--color-gold-bright);
-  background: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.02) 100%);
-  border: var(--border-rpg-bright);
-  box-shadow: inset 3px 0 0 var(--color-gold), var(--shadow-glow);
+  color: #ffffff;
+  background: var(--color-primary);
+  border: 2px solid var(--color-primary-dark);
+  box-shadow: 0 4px 0px var(--color-primary-dark);
+  transform: translateY(-2px);
 }
 
 .sidebar-footer {
-  border-top: var(--border-rpg);
-  padding-top: 1rem;
+  border-top: 2px solid #ecd6bc;
+  padding-top: 1.25rem;
   font-size: 0.8rem;
+  font-weight: 700;
   color: var(--color-text-muted);
   text-align: center;
 }
@@ -177,58 +199,67 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
 }
 
+/* Top bar styled with soft white and badges */
 .header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 2rem;
-  background: rgba(18, 16, 14, 0.85);
-  backdrop-filter: blur(8px);
-  border-bottom: var(--border-rpg);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid #ecd6bc;
   z-index: 5;
 }
 
 .view-container {
   flex-grow: 1;
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   overflow-y: auto;
   position: relative;
   height: calc(100vh - 75px);
+  background-image: 
+    radial-gradient(#ecd6bc 1px, transparent 1px), 
+    radial-gradient(#ecd6bc 1px, #f7f5ee 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
 }
 
-/* RPG Panel Component Styles */
+/* Bubbly RPG Panels */
 .rpg-panel {
-  background: rgba(27, 23, 20, 0.75);
-  backdrop-filter: blur(12px);
-  border: var(--border-rpg);
+  background: var(--bg-card);
+  border: var(--border-wood-thick);
   border-radius: var(--border-radius-lg);
   padding: 1.5rem;
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.7),
-    inset 0 0 1px 1px rgba(255, 255, 255, 0.05),
-    var(--shadow-glow);
+  box-shadow: var(--shadow-panel), var(--shadow-cozy);
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
 }
 
+/* Left panel-edge wood tag */
 .rpg-panel::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  height: 6px;
+  background: var(--color-primary);
 }
 
+/* Highlight panel variants */
 .rpg-panel.ember-panel {
-  border: var(--border-rpg-ember);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), var(--shadow-glow-ember);
+  background: var(--bg-card-warm);
+}
+.rpg-panel.ember-panel::before {
+  background: var(--color-ember);
 }
 
-.rpg-panel.ember-panel::before {
-  background: linear-gradient(90deg, transparent, var(--color-ember), transparent);
+.rpg-panel.success-panel {
+  background: #f0fdf4;
+}
+.rpg-panel.success-panel::before {
+  background: var(--color-primary);
 }
 
 .panel-header {
@@ -236,103 +267,117 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+  border-bottom: 2px dashed #ecd6bc;
   padding-bottom: 0.75rem;
 }
 
 .panel-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--color-text-parchment);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-family: var(--font-display);
 }
 
-/* Button UI */
+/* 3D Casual Game Buttons */
 .rpg-btn {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  font-size: 0.95rem;
   padding: 0.65rem 1.25rem;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.1s ease;
   outline: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  user-select: none;
 }
 
 .rpg-btn-primary {
-  background: linear-gradient(135deg, #a67c1e 0%, var(--color-gold) 50%, #8a640f 100%);
-  border: 1px solid #ffea88;
-  color: var(--bg-obsidian);
-  font-weight: 700;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 10px rgba(212, 175, 55, 0.2);
+  background: var(--color-gold);
+  border: 2px solid #8d6e63;
+  color: var(--color-text-dark);
+  box-shadow: var(--shadow-button-secondary);
 }
 
 .rpg-btn-primary:hover:not(:disabled) {
+  background: var(--color-gold-bright);
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.5);
-  filter: brightness(1.1);
+  box-shadow: 0 6px 0px #c69c6d;
 }
 
 .rpg-btn-primary:active:not(:disabled) {
-  transform: translateY(1px);
-  filter: brightness(0.9);
+  transform: translateY(4px);
+  box-shadow: 0 0px 0px transparent;
 }
 
 .rpg-btn-secondary {
-  background: rgba(40, 34, 29, 0.6);
-  border: var(--border-rpg);
-  color: var(--color-text-parchment);
+  background: #fcfbfa;
+  border: 2px solid #8d6e63;
+  color: var(--color-text-dark);
+  box-shadow: 0 4px 0px rgba(141, 110, 99, 0.2);
 }
 
 .rpg-btn-secondary:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.1);
-  border: var(--border-rpg-bright);
-  color: var(--color-gold-bright);
+  background: #f7f5ee;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px rgba(141, 110, 99, 0.2);
+}
+
+.rpg-btn-secondary:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0px transparent;
 }
 
 .rpg-btn-danger {
-  background: linear-gradient(135deg, #a32d2d 0%, var(--color-danger) 100%);
-  border: 1px solid #ff8888;
-  color: #fff;
+  background: var(--color-ember);
+  border: 2px solid #8d6e63;
+  color: #ffffff;
+  box-shadow: var(--shadow-button-danger);
 }
 
 .rpg-btn-danger:hover:not(:disabled) {
+  background: #ff8a65;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(207, 67, 67, 0.4);
+  box-shadow: 0 6px 0px var(--color-ember-dark);
+}
+
+.rpg-btn-danger:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0px transparent;
 }
 
 .rpg-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
+  box-shadow: none !important;
 }
 
-/* Inputs */
+/* Inputs & Form Fields */
 .rpg-input, .rpg-select, .rpg-textarea {
-  background: rgba(18, 16, 14, 0.95);
-  border: var(--border-rpg);
-  color: var(--color-text-parchment);
+  background: #fffdf5;
+  border: 2px solid #c69c6d;
+  color: var(--color-text-dark);
   padding: 0.65rem 0.85rem;
   border-radius: var(--border-radius-md);
   font-family: var(--font-sans);
+  font-weight: 700;
   font-size: 0.9rem;
   width: 100%;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   outline: none;
 }
 
 .rpg-input:focus, .rpg-select:focus, .rpg-textarea:focus {
-  border: var(--border-rpg-bright);
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
-  background: rgba(27, 23, 20, 0.95);
+  border-color: var(--color-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(116, 195, 60, 0.25);
 }
 
 .rpg-field {
@@ -344,26 +389,28 @@ h1, h2, h3, h4, h5, h6 {
 
 .rpg-label {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--color-text-muted);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-/* RPG Stats Bar */
+/* Progress and Stat Bars */
 .stat-bar-container {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.35rem;
   width: 100%;
 }
 
 .stat-bar-header {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   font-family: var(--font-display);
   color: var(--color-text-muted);
 }
@@ -375,41 +422,41 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .stat-bar-value {
-  color: var(--color-text-parchment);
+  color: var(--color-text-dark);
 }
 
 .stat-bar-track {
-  height: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 4px;
+  height: 14px; /* Thicker and rounder */
+  background: #e5dec9;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 2px solid #8d6e63;
   position: relative;
 }
 
 .stat-bar-fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
 }
 
 .stat-bar-fill.xp {
-  background: linear-gradient(90deg, #8b5cf6, #3b82f6);
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+  box-shadow: inset 0 -2px 0px rgba(0, 0, 0, 0.15);
 }
 
 .stat-bar-fill.timer {
-  background: linear-gradient(90deg, var(--color-ember), var(--color-gold-bright));
-  box-shadow: 0 0 8px var(--color-ember-glow);
+  background: linear-gradient(90deg, #ff8a65, var(--color-ember));
+  box-shadow: inset 0 -2px 0px rgba(0, 0, 0, 0.15);
 }
 
 .stat-bar-fill.health {
-  background: linear-gradient(90deg, #ef4444, #f87171);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(90deg, #f87171, #ef4444);
+  box-shadow: inset 0 -2px 0px rgba(0, 0, 0, 0.15);
 }
 
-/* Stat Grid (STR, DEX, etc.) */
+/* Attributes Grid */
 .attribute-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -417,37 +464,42 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .attribute-card {
-  background: rgba(18, 16, 14, 0.5);
-  border: 1px solid rgba(212, 175, 55, 0.1);
-  padding: 0.75rem;
+  background: #fffcf5;
+  border: 2px solid #ecd6bc;
+  padding: 0.75rem 1rem;
   border-radius: var(--border-radius-md);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  box-shadow: 0 4px 0px rgba(141, 110, 99, 0.04);
 }
 
 .attribute-card:hover {
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  background: rgba(212, 175, 55, 0.03);
+  border-color: #c69c6d;
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px rgba(141, 110, 99, 0.08);
 }
 
 .attribute-name {
   font-family: var(--font-display);
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
 }
 
 .attribute-val {
+  font-family: var(--font-display);
   font-weight: 700;
-  color: var(--color-text-gold);
-  font-size: 1.1rem;
+  color: var(--color-text-dark);
+  font-size: 1.15rem;
 }
 
-/* Grid helper */
+/* Dashboard Layout */
 .rpg-grid-dashboard {
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 1.25fr 1fr;
   gap: 1.5rem;
   height: 100%;
 }
@@ -458,50 +510,90 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1.5rem;
 }
 
-/* Gold Badge */
+/* Coins Gold Badge */
 .gold-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--color-text-gold);
+  background: #fff9db;
+  border: 2px solid #fcc419;
+  color: #d9480f;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
   font-family: var(--font-display);
-  font-weight: bold;
+  font-weight: 700;
   font-size: 1.05rem;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  box-shadow: 0 3px 0px #fab005;
 }
 
 .gold-icon {
-  color: var(--color-gold-bright);
+  color: #fab005;
 }
 
-/* Modal Window */
+/* Bubbly RPG Modal Overlay */
 .rpg-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(6px);
+  background: rgba(141, 110, 99, 0.4); /* soft warm wood blur overlay */
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
 .rpg-modal {
   width: 90%;
-  max-width: 500px;
-  animation: modalEnter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  max-width: 480px;
+  animation: modalEnter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes modalEnter {
   from {
     opacity: 0;
-    transform: scale(0.9) translateY(20px);
+    transform: scale(0.8) translateY(30px);
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* Pixel Character CSS Spritesheet idle animation */
+@keyframes playHeroIdle {
+  from { background-position: 0px 0px; }
+  to { background-position: -144px 0px; } /* 16px * 9 frames = 144px */
+}
+
+.pixel-hero-idle {
+  width: 16px;
+  height: 18px;
+  background-size: 144px 18px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: playHeroIdle 1.2s steps(9) infinite;
+  transform-origin: center;
+}
+
+.hero-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: #fcfaf2;
+  border: 3px solid #8d6e63;
+  border-radius: 50%;
+  box-shadow: inset 0 0 10px rgba(141,110,99,0.1), 0 4px 0px rgba(141,110,99,0.08);
+  overflow: hidden;
 }

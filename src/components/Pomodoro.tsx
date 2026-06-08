@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, RotateCcw, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { ActivityLog } from "../services/db";
+import baseIdle from "../assets/cozy/base_idle_strip9.png";
+import longhairIdle from "../assets/cozy/longhair_idle_strip9.png";
 
 interface PomodoroProps {
   onSessionComplete: (log: Omit<ActivityLog, "id">) => void;
@@ -209,7 +211,7 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
               cy="110"
               r={radius}
               fill="transparent"
-              stroke="rgba(0, 0, 0, 0.4)"
+              stroke="#f1ede2"
               strokeWidth="8"
             />
             <circle
@@ -217,7 +219,7 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
               cy="110"
               r={radius}
               fill="transparent"
-              stroke={isBreak ? "var(--color-success)" : "var(--color-ember)"}
+              stroke={isBreak ? "var(--color-primary)" : "var(--color-ember)"}
               strokeWidth="8"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -238,11 +240,22 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
               justifyContent: "center",
             }}
           >
-            <span style={{ fontSize: "2.6rem", fontWeight: "bold", letterSpacing: "1px", textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>
+            {/* Animated pixel-art character */}
+            <div 
+              className="pixel-hero-idle" 
+              style={{ 
+                backgroundImage: `url(${isBreak ? longhairIdle : baseIdle})`,
+                transform: "scale(3.5)",
+                marginBottom: "0.5rem",
+                marginTop: "-0.75rem",
+                animationPlayState: isRunning ? "running" : "paused" // character pauses when timer pauses! Cute details!
+              }} 
+            />
+            <span style={{ fontSize: "2.3rem", fontWeight: "bold", fontFamily: "var(--font-display)", color: "var(--color-text-dark)", letterSpacing: "0.5px" }}>
               {formatTime(timeLeft)}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.15em", marginTop: "-4px" }}>
-              {isBreak ? "Meditating" : "Studying"}
+            <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: "2px" }}>
+              {isBreak ? "Resting" : "Focusing"}
             </span>
           </div>
         </div>
