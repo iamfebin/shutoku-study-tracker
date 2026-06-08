@@ -1,32 +1,67 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Compass, ShieldAlert, Award } from "lucide-react";
+import { Compass, ShieldAlert } from "lucide-react";
 import gsap from "gsap";
 import { HeroProfile } from "../services/db";
 import baseIdle from "../assets/cozy/base_idle_strip9.png";
 
 interface RpgMapProps {
   profile: HeroProfile;
-  onSelectNode: (nodeId: number, goldReward: number) => void;
+  onUnlockGate: () => void;
 }
 
 interface MapNode {
   id: number;
   name: string;
-  lvlRequired: number;
-  goldReward: number;
   percent: number; // position on path (0.0 to 1.0)
   icon: string;
   description: string;
+  requirementText: string;
 }
 
-export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
+export const RpgMap: React.FC<RpgMapProps> = ({ profile, onUnlockGate }) => {
   const nodes: MapNode[] = [
-    { id: 1, name: "Novice Rest", lvlRequired: 1, goldReward: 20, percent: 0.05, icon: "🏕️", description: "A quiet clearing for fresh apprentices." },
-    { id: 2, name: "Deepwood Camp", lvlRequired: 3, goldReward: 50, percent: 0.22, icon: "🌲", description: "Brave the dark trees and test your willpower." },
-    { id: 3, name: "Whispering Ruins", lvlRequired: 5, goldReward: 100, percent: 0.44, icon: "🏛️", description: "Ancient scripts that reveal deep wisdom." },
-    { id: 4, name: "Dragon's Ridge", lvlRequired: 8, goldReward: 200, percent: 0.62, icon: "🌋", description: "A fiery mountain range training physical endurance." },
-    { id: 5, name: "Sunken Citadel", lvlRequired: 12, goldReward: 400, percent: 0.81, icon: "🏰", description: "A submerged castle requiring ultimate intelligence." },
-    { id: 6, name: "Imperial Spire", lvlRequired: 15, goldReward: 800, percent: 0.96, icon: "👑", description: "The peak of knowledge. Only true masters reach here." },
+    { 
+      id: 1, 
+      name: "Home Base", 
+      percent: 0.05, 
+      icon: "🏕️", 
+      description: "Your cozy campsite where resting restores Energy.",
+      requirementText: "Rest Zone"
+    },
+    { 
+      id: 2, 
+      name: "Python Building", 
+      percent: 0.28, 
+      icon: "⚡", 
+      description: "A high-tech spire where compilers hum. Study Python here to collect Python Pages.",
+      requirementText: "Goal: 2 Hours/day"
+    },
+    { 
+      id: 3, 
+      name: "German Town", 
+      percent: 0.52, 
+      icon: "🏡", 
+      description: "A scenic alpine village. Study German here to collect German Cards.",
+      requirementText: "Goal: 5 Hours/day"
+    },
+    { 
+      id: 4, 
+      name: "SQL Ruins", 
+      percent: 0.76, 
+      icon: "🏺", 
+      description: "Ancient stone slabs etched with relational database schemas. Study SQL here for SQL Runestones.",
+      requirementText: "Goal: 2 Hours/day"
+    },
+    { 
+      id: 5, 
+      name: "Kingdom's Gate", 
+      percent: 0.95, 
+      icon: profile.princess_rescued ? "👑" : "🏰", 
+      description: profile.princess_rescued 
+        ? "The magical gate is unlocked, and the Princess is rescued! You are the champion of Shutoku!"
+        : "The magically sealed castle gate. Collect and combine shards to forge 3 Key Fragments and open it!",
+      requirementText: "Requires 3 Key Fragments"
+    },
   ];
 
   const pathD = "M 80 280 C 180 140, 240 400, 360 220 C 420 120, 520 180, 580 320 C 640 420, 720 160, 850 200";
@@ -35,6 +70,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
   const [tokenPos, setTokenPos] = useState({ x: 80, y: 280 });
   const [hoverNode, setHoverNode] = useState<MapNode | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const pathRef = useRef<SVGPathElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -63,7 +99,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
     }
   }, [profile.current_node_id]);
 
-  // Particles (embers) loop
+  // Particles (leaves/petals) loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -99,16 +135,16 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
       "rgba(116, 195, 60, 0.4)",  // Grassy green
       "rgba(163, 230, 53, 0.4)",   // Lime green
       "rgba(254, 195, 30, 0.4)",   // Gold sparkle
-      "rgba(141, 110, 99, 0.2)"    // Wood brown leaf
+      "rgba(244, 114, 182, 0.3)"   // Pink flower petals!
     ];
 
     const spawnParticle = () => {
       particles.push({
         x: Math.random() * width,
-        y: -10, // Top of canvas
+        y: -10,
         size: Math.random() * 3 + 2,
-        speedY: Math.random() * 0.7 + 0.4, // float downwards
-        speedX: Math.random() * 0.4 - 0.1, // drift rightwards
+        speedY: Math.random() * 0.7 + 0.4,
+        speedX: Math.random() * 0.4 - 0.1,
         alpha: Math.random() * 0.5 + 0.3,
         life: Math.random() * 350 + 150,
         angle: Math.random() * Math.PI * 2,
@@ -142,12 +178,10 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         ctx.rotate(p.angle);
         ctx.beginPath();
         
-        // Leaf/diamond shape
         ctx.moveTo(0, -p.size);
         ctx.quadraticCurveTo(p.size / 2, 0, 0, p.size);
         ctx.quadraticCurveTo(-p.size / 2, 0, 0, -p.size);
         
-        // Dynamically adjust alpha
         const drawColor = p.color.replace(/[\d\.]+\)$/, `${p.alpha})`);
         ctx.fillStyle = drawColor;
         ctx.fill();
@@ -166,17 +200,25 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
   }, []);
 
   const handleNodeClick = (node: MapNode) => {
-    if (profile.level < node.lvlRequired) {
-      setErrorMessage(`Cannot unlock ${node.name}. Requires Level ${node.lvlRequired}!`);
-      setTimeout(() => setErrorMessage(null), 3000);
-      return;
+    if (node.id === 5) {
+      if (profile.princess_rescued === 1) {
+        setSuccessMessage("You have already rescued the princess! You are a legendary scholar.");
+        setTimeout(() => setSuccessMessage(null), 3500);
+        return;
+      }
+      if (profile.key_fragments < 3) {
+        setErrorMessage(`The gate is magically sealed! You need 3 Key Fragments. (You have: ${profile.key_fragments})`);
+        setTimeout(() => setErrorMessage(null), 3500);
+        return;
+      }
+      onUnlockGate();
+    } else {
+      // General feedback
+      setSuccessMessage(`To travel to the ${node.name}, go to the Focus Room and start studying/resting.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
     }
-    
-    // Call parent handler to update current node and award gold if applicable
-    onSelectNode(node.id, node.goldReward);
   };
 
-  // Convert node percentage to SVG coordinates on render to place node markers
   const getNodeCoords = (percent: number) => {
     if (!pathRef.current) return { x: 0, y: 0 };
     const totalLength = pathRef.current.getTotalLength();
@@ -187,11 +229,8 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
   const [coordsLoaded, setCoordsLoaded] = useState(false);
 
   useEffect(() => {
-    // A small timeout allows the SVG to render and path length to calculate
     const t = setTimeout(() => {
       setCoordsLoaded(true);
-      
-      // Also update token position immediately on mount
       if (pathRef.current) {
         const activeNode = nodes.find((n) => n.id === profile.current_node_id) || nodes[0];
         const totalLength = pathRef.current.getTotalLength();
@@ -210,13 +249,12 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         height: "100%", 
         minHeight: "450px", 
         padding: "0", 
-        background: "linear-gradient(to bottom, #e0f2fe 0%, #dcfce7 100%)", // Sky to meadow green gradient!
+        background: "linear-gradient(to bottom, #dff0fe 0%, #ebfdf0 100%)", // sky to soft bright meadow
         border: "var(--border-wood-thick)",
         position: "relative",
         overflow: "hidden"
       }}
     >
-      {/* Canvas for background soughing leaves */}
       <canvas 
         ref={canvasRef} 
         style={{ 
@@ -243,10 +281,10 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         }}
       >
         <h3 className="panel-title" style={{ color: "var(--color-text-dark)" }}>
-          <Compass size={18} style={{ color: "var(--color-secondary)" }} /> Map of Shutoku
+          <Compass size={18} style={{ color: "var(--color-secondary)" }} /> The Kingdom of Shutoku
         </h3>
         <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", fontWeight: "bold" }}>
-          Travel to unlocked camps as your Level increases to claim your destiny.
+          Unseal the Castle Gate at the end of the trail to rescue the Princess!
         </p>
       </div>
 
@@ -274,6 +312,33 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         >
           <ShieldAlert size={14} />
           {errorMessage}
+        </div>
+      )}
+
+      {/* Informational popup */}
+      {successMessage && (
+        <div 
+          style={{ 
+            position: "absolute", 
+            top: "1.25rem", 
+            right: "1.25rem", 
+            zIndex: 100, 
+            background: "var(--color-secondary)", 
+            padding: "0.6rem 1.15rem", 
+            borderRadius: "10px",
+            border: "2px solid #8d6e63",
+            color: "#ffffff",
+            fontSize: "0.85rem",
+            fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            animation: "modalEnter 0.2s ease",
+            boxShadow: "0 6px 0px var(--color-secondary-dark)"
+          }}
+        >
+          <Compass size={14} />
+          {successMessage}
         </div>
       )}
 
@@ -305,7 +370,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         <path
           d="M 450 -20 C 490 140, 310 260, 340 470"
           fill="none"
-          stroke="#a5f3fc"
+          stroke="#bfeefc"
           strokeWidth="22"
           strokeLinecap="round"
           opacity="0.85"
@@ -327,7 +392,6 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
           <line x1="-12" y1="0" x2="12" y2="0" stroke="#5d4037" strokeWidth="2" />
           <line x1="-12" y1="7" x2="12" y2="7" stroke="#5d4037" strokeWidth="2" />
           <line x1="-12" y1="14" x2="12" y2="14" stroke="#5d4037" strokeWidth="2" />
-          {/* Bridge Rails */}
           <path d="M -12 -22 Q 0 -18 12 -22" stroke="#ecd6bc" strokeWidth="2.5" fill="none" />
           <path d="M -12 22 Q 0 18 12 22" stroke="#ecd6bc" strokeWidth="2.5" fill="none" />
         </g>
@@ -339,19 +403,18 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
           <text x="160" y="320" style={{ fontSize: "1.5rem" }}>🌳</text>
           <text x="250" y="370" style={{ fontSize: "1.8rem" }}>🌲</text>
           <text x="280" y="390" style={{ fontSize: "2rem" }}>🌲</text>
-          <text x="220" y="400" style={{ fontSize: "1.6rem" }}>🌲</text>
           
           {/* Whispering Ruins flower beds */}
           <text x="440" y="250" style={{ fontSize: "1.4rem" }}>🌸</text>
           <text x="460" y="220" style={{ fontSize: "1.2rem" }}>🌷</text>
           <text x="490" y="240" style={{ fontSize: "1.3rem" }}>🌻</text>
           
-          {/* Dragon Ridge Volcanic Rocks */}
+          {/* SQL Cavern Rocks */}
           <text x="540" y="370" style={{ fontSize: "1.8rem" }}>🪨</text>
           <text x="640" y="390" style={{ fontSize: "1.8rem" }}>🪨</text>
           <text x="660" y="330" style={{ fontSize: "1.4rem" }}>🔥</text>
           
-          {/* Sunken Citadel lotus garden */}
+          {/* Castle lotus garden */}
           <text x="680" y="120" style={{ fontSize: "1.5rem" }}>🪷</text>
           <text x="760" y="100" style={{ fontSize: "1.6rem" }}>🪷</text>
           <text x="730" y="70" style={{ fontSize: "1.4rem" }}>⛲</text>
@@ -364,13 +427,12 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
 
         {/* Cute Animals grazing */}
         <g style={{ userSelect: "none" }}>
-          <text x="110" y="210" style={{ fontSize: "1.4rem" }}>🐑</text> {/* Sheep near camp */}
-          <text x="280" y="190" style={{ fontSize: "1.5rem" }}>🐄</text> {/* Cow near ruins */}
-          <text x="325" y="390" style={{ fontSize: "1.4rem" }}>🦆</text> {/* Duck in river */}
-          <text x="880" y="260" style={{ fontSize: "1.3rem" }}>🐥</text> {/* Chicks near spire */}
-          <text x="855" y="280" style={{ fontSize: "1.3rem" }}>🐥</text>
-          {/* A dragon flying in the sky near Dragon's Ridge */}
-          <text x="590" y="90" style={{ fontSize: "2.2rem", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))", animation: "bounceDragon 4s ease-in-out infinite" }}>🐉</text>
+          <text x="110" y="210" style={{ fontSize: "1.4rem" }}>🐑</text> 
+          <text x="280" y="190" style={{ fontSize: "1.5rem" }}>🐄</text> 
+          <text x="325" y="390" style={{ fontSize: "1.4rem" }}>🦆</text> 
+          <text x="880" y="260" style={{ fontSize: "1.3rem" }}>🐥</text> 
+          {/* A dragon flying in the sky near SQL ruins */}
+          <text x="610" y="80" style={{ fontSize: "2.2rem", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))", animation: "bounceDragon 4s ease-in-out infinite" }}>🐉</text>
         </g>
 
         {/* Wavy bezier path - Wood/dirt trail */}
@@ -384,7 +446,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
           strokeLinecap="round"
         />
 
-        {/* Highlight completed path portion - Grass green path */}
+        {/* Highlight completed path portion */}
         {pathRef.current && coordsLoaded && (
           <path
             d={pathD}
@@ -404,7 +466,6 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         {/* Draw Nodes */}
         {pathRef.current && coordsLoaded && nodes.map((node) => {
           const pos = getNodeCoords(node.percent);
-          const isUnlocked = profile.level >= node.lvlRequired;
           const isCurrent = profile.current_node_id === node.id;
 
           return (
@@ -416,7 +477,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
               onMouseEnter={() => setHoverNode(node)}
               onMouseLeave={() => setHoverNode(null)}
             >
-              {/* Node grassy shadow platform */}
+              {/* shadow */}
               <circle
                 r="18"
                 fill="rgba(116, 195, 60, 0.15)"
@@ -427,17 +488,16 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
               <circle
                 r={isCurrent ? "21" : "15"}
                 fill="transparent"
-                stroke={isCurrent ? "var(--color-ember)" : isUnlocked ? "var(--color-primary)" : "#c69c6d"}
+                stroke={isCurrent ? "var(--color-secondary)" : node.id === 5 ? "var(--color-ember)" : "var(--color-primary)"}
                 strokeWidth="3"
                 style={{
-                  opacity: 1,
                   animation: isCurrent ? "pulseGlow 2s infinite" : "none"
                 }}
               />
-              {/* Inner node background */}
+              {/* Inner node */}
               <circle
                 r={isCurrent ? "17" : "11"}
-                fill={isCurrent ? "#fffbeb" : isUnlocked ? "#ffffff" : "#f1ede2"}
+                fill={isCurrent ? "#e0f2fe" : "#ffffff"}
                 stroke="#8d6e63"
                 strokeWidth="2"
               />
@@ -459,9 +519,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
             transform={`translate(${tokenPos.x - 20}, ${tokenPos.y - 36})`}
             style={{ pointerEvents: "none" }}
           >
-            {/* Tiny soft shadow */}
             <ellipse cx="20" cy="34" rx="12" ry="4" fill="rgba(141, 110, 99, 0.3)" />
-            {/* Animated pixel character */}
             <foreignObject width="40" height="40">
               <div 
                 className="pixel-hero-idle" 
@@ -507,23 +565,15 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
           
           <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "end" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: "bold" }}>Requirement</span>
-              <span style={{ fontSize: "0.9rem", color: profile.level >= hoverNode.lvlRequired ? "var(--color-primary-dark)" : "var(--color-danger)", display: "flex", alignItems: "center", gap: "0.2rem", fontWeight: "bold" }}>
-                <Award size={14} /> Level {hoverNode.lvlRequired}
-              </span>
-            </div>
-            
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "end" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: "bold" }}>Gold Reward</span>
-              <span style={{ fontSize: "0.95rem", color: "var(--color-text-gold)", fontWeight: "bold" }}>
-                +{hoverNode.goldReward}g
+              <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: "bold" }}>Location Info</span>
+              <span style={{ fontSize: "0.9rem", color: "var(--color-secondary-dark)", display: "flex", alignItems: "center", gap: "0.2rem", fontWeight: "bold" }}>
+                {hoverNode.requirementText}
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Embedded local keyframes animations style */}
       <style>{`
         @keyframes pulseGlow {
           0% { transform: scale(1); opacity: 0.9; }
@@ -532,7 +582,7 @@ export const RpgMap: React.FC<RpgMapProps> = ({ profile, onSelectNode }) => {
         }
         @keyframes bounceDragon {
           0% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-12px) rotate(-3deg) scaleX(-1); } /* flip and hover! */
+          50% { transform: translateY(-12px) rotate(-3deg) scaleX(-1); }
           100% { transform: translateY(0px) rotate(0deg); }
         }
       `}</style>

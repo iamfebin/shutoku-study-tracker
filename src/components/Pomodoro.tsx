@@ -1,19 +1,33 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, RotateCcw, AlertTriangle, CheckCircle, Clock } from "lucide-react";
-import { ActivityLog } from "../services/db";
+import { ActivityLog, HeroProfile } from "../services/db";
+import { calculateSessionRewards } from "../utils/rpg";
 import baseIdle from "../assets/cozy/base_idle_strip9.png";
 import longhairIdle from "../assets/cozy/longhair_idle_strip9.png";
 
 interface PomodoroProps {
-  onSessionComplete: (log: Omit<ActivityLog, "id">) => void;
+  profile: HeroProfile;
+  onSessionComplete: (
+    log: Omit<ActivityLog, "id">,
+    rewards: { focusOrbs: number; materials: number; gold: number; xp: number }
+  ) => void;
+  isResting: boolean;
+  onToggleRest: () => void;
+  onTravelToNode: (nodeId: number) => void;
 }
 
-export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
+export const Pomodoro: React.FC<PomodoroProps> = ({
+  profile,
+  onSessionComplete,
+  isResting,
+  onToggleRest,
+  onTravelToNode,
+}) => {
   // Config
   const [focusLength, setFocusLength] = useState<number>(25); // in minutes
   const [breakLength, setBreakLength] = useState<number>(5); // in minutes
   const [isBreak, setIsBreak] = useState<boolean>(false);
-  const [subject, setSubject] = useState<string>("Coding");
+  const [subject, setSubject] = useState<string>("Python");
   const [statCategory, setStatCategory] = useState<string>("INT");
   const [notes, setNotes] = useState<string>("");
 
@@ -27,6 +41,20 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
   const timerRef = useRef<any>(null);
   const totalDurationRef = useRef<number>(25 * 60);
   const startTimeRef = useRef<Date | null>(null);
+
+  // Auto-sync subject and stat categories
+  const handleSubjectChange = (newSubject: string) => {
+    setSubject(newSubject);
+    if (newSubject === "German") {
+      setStatCategory("CHA");
+    } else if (newSubject === "Python") {
+      setStatCategory("INT");
+    } else if (newSubject === "SQL") {
+      setStatCategory("WIS");
+    } else {
+      setStatCategory("INT");
+    }
+  };
 
   // Sound Synthesizers
   const playChimeSound = () => {
@@ -124,8 +152,17 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
   };
 
   const toggleTimer = () => {
+    if (isResting) return; // Cannot study while resting
     playClickSound();
-    setIsRunning(!isRunning);
+    const willStart = !isRunning;
+    setIsRunning(willStart);
+
+    if (willStart) {
+      // Auto-commute / Travel to study spot
+      if (subject.toLowerCase() === "python") onTravelToNode(2);
+      else if (subject.toLowerCase() === "german") onTravelToNode(3);
+      else if (subject.toLowerCase() === "sql") onTravelToNode(4);
+    }
   };
 
   const resetTimer = () => {
@@ -146,25 +183,33 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
   const submitReview = () => {
     const end = new Date();
     const start = startTimeRef.current || new Date(end.getTime() - focusLength * 60 * 1000);
-    
-    // XP Calculation: 1 XP per minute of focus, reduced slightly for distractions, with base rewards
     const durationMins = focusLength;
-    const rawXp = durationMins * 4;
-    // XP Deduction: -10% per distraction, capped at 50% loss
-    const penaltyRatio = Math.max(0.5, 1 - distractions * 0.1);
-    const finalXp = Math.max(5, Math.round(rawXp * penaltyRatio));
+    const isSloth = profile.sloth_active === 1;
 
-    onSessionComplete({
+    // Calculate rewards using utility function
+    const rewards = calculateSessionRewards(
       subject,
-      stat_category: statCategory,
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      duration_minutes: durationMins,
-      distraction_count: distractions,
-      focus_rating: focusRating,
-      xp_gained: finalXp,
-      notes: notes,
-    });
+      durationMins,
+      focusRating,
+      isSloth,
+      profile.energy
+    );
+
+    // Pass complete logs & rewards to callback
+    onSessionComplete(
+      {
+        subject,
+        stat_category: statCategory,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        duration_minutes: durationMins,
+        distraction_count: distractions,
+        focus_rating: focusRating,
+        xp_gained: rewards.xp,
+        notes: notes,
+      },
+      rewards
+    );
 
     // Reset UI state
     setShowReviewModal(false);
@@ -191,19 +236,19 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
   };
 
   return (
-    <div className={`rpg-panel ${isBreak ? "success-panel" : "ember-panel"}`}>
+    <div className={`rpg-panel ${isResting ? "success-panel" : isBreak ? "success-panel" : "ember-panel"}`}>
       <div className="panel-header">
-        <h3 className="panel-title" style={{ color: isBreak ? "var(--color-success)" : "var(--color-ember)" }}>
-          <Clock size={18} /> {isBreak ? "Rest & Recovery" : "Focus Chamber"}
+        <h3 className="panel-title" style={{ color: isResting ? "var(--color-secondary)" : isBreak ? "var(--color-success)" : "var(--color-ember)" }}>
+          <Clock size={18} /> {isResting ? "Home Rest Sanctuary" : isBreak ? "Rest & Recovery" : "Focus Chamber"}
         </h3>
         <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", fontFamily: "var(--font-display)" }}>
-          {isBreak ? "Break Active" : `Training ${statCategory}`}
+          {isResting ? "Home Base" : isBreak ? "Break Active" : `Training ${statCategory}`}
         </span>
       </div>
 
       <div style={{ display: "flex", gap: "2rem", alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
         
-        {/* Circular SVG Timer */}
+        {/* Circular SVG Timer & Rest Display */}
         <div style={{ position: "relative", width: "220px", height: "220px", display: "flex", alignItems: "center", justifyItems: "center" }}>
           <svg width="220" height="220" style={{ transform: "rotate(-90deg)" }}>
             <circle
@@ -219,12 +264,12 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
               cy="110"
               r={radius}
               fill="transparent"
-              stroke={isBreak ? "var(--color-primary)" : "var(--color-ember)"}
+              stroke={isResting ? "var(--color-secondary)" : isBreak ? "var(--color-primary)" : "var(--color-ember)"}
               strokeWidth="8"
               strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
+              strokeDashoffset={isResting ? circumference - (profile.energy / 100) * circumference : strokeDashoffset}
               strokeLinecap="round"
-              style={{ transition: "stroke-dashoffset 0.1s linear" }}
+              style={{ transition: "stroke-dashoffset 0.2s linear" }}
             />
           </svg>
           <div 
@@ -240,41 +285,79 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
               justifyContent: "center",
             }}
           >
+            {/* Sleeping particle text floating */}
+            {isResting && (
+              <>
+                <span className="zzz-particle" style={{ top: "25px", right: "70px", animationDelay: "0s" }}>Z</span>
+                <span className="zzz-particle" style={{ top: "15px", right: "85px", animationDelay: "0.6s" }}>z</span>
+                <span className="zzz-particle" style={{ top: "35px", right: "55px", animationDelay: "1.2s" }}>z</span>
+              </>
+            )}
+            
             {/* Animated pixel-art character */}
             <div 
               className="pixel-hero-idle" 
               style={{ 
-                backgroundImage: `url(${isBreak ? longhairIdle : baseIdle})`,
+                backgroundImage: `url(${isResting || isBreak ? longhairIdle : baseIdle})`,
                 transform: "scale(3.5)",
                 marginBottom: "0.5rem",
                 marginTop: "-0.75rem",
-                animationPlayState: isRunning ? "running" : "paused" // character pauses when timer pauses! Cute details!
+                animationPlayState: isRunning || isResting ? "running" : "paused"
               }} 
             />
             <span style={{ fontSize: "2.3rem", fontWeight: "bold", fontFamily: "var(--font-display)", color: "var(--color-text-dark)", letterSpacing: "0.5px" }}>
-              {formatTime(timeLeft)}
+              {isResting ? `${profile.energy}%` : formatTime(timeLeft)}
             </span>
             <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: "2px" }}>
-              {isBreak ? "Resting" : "Focusing"}
+              {isResting ? "Energy level" : isBreak ? "Resting" : "Focusing"}
             </span>
           </div>
         </div>
 
-        {/* Configuration Column */}
+        {/* Configuration & Energy Controls */}
         <div style={{ flex: 1, minWidth: "220px", display: "flex", flexDirection: "column", gap: "1rem" }}>
           
           {/* Controls row */}
+          {!isResting ? (
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button 
+                className="rpg-btn rpg-btn-primary" 
+                onClick={toggleTimer} 
+                style={{ flex: 1 }}
+                disabled={profile.energy < 20 && !isRunning}
+              >
+                {isRunning ? <Pause size={16} /> : <Play size={16} />} {isRunning ? "Pause" : "Commence"}
+              </button>
+              <button className="rpg-btn rpg-btn-secondary" onClick={resetTimer} title="Reset Timer">
+                <RotateCcw size={16} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ padding: "0.2rem", textAlign: "center" }}>
+              <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: "bold" }}>
+                Recovering from adventures...
+              </span>
+            </div>
+          )}
+
+          {/* Resting Button (Home Base Toggle) */}
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button className="rpg-btn rpg-btn-primary" onClick={toggleTimer} style={{ flex: 1 }}>
-              {isRunning ? <Pause size={16} /> : <Play size={16} />} {isRunning ? "Pause" : "Commence"}
-            </button>
-            <button className="rpg-btn rpg-btn-secondary" onClick={resetTimer} title="Reset Timer">
-              <RotateCcw size={16} />
+            <button 
+              className={`rpg-btn ${isResting ? "rpg-btn-danger" : "rpg-btn-secondary"}`}
+              onClick={() => {
+                if (isRunning) {
+                  setIsRunning(false); // Cancel current study
+                }
+                onToggleRest();
+              }}
+              style={{ flex: 1 }}
+            >
+              {isResting ? "🛌 Wake Up & Study" : "😴 Rest at Home"}
             </button>
           </div>
 
           {/* Distraction logging */}
-          {!isBreak && (
+          {!isBreak && !isResting && (
             <button 
               className="rpg-btn rpg-btn-secondary" 
               onClick={logDistraction} 
@@ -286,8 +369,8 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
           )}
 
           {/* Configuration Inputs */}
-          {!isRunning && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", background: "rgba(0,0,0,0.25)", padding: "0.75rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.02)" }}>
+          {!isRunning && !isResting && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", background: "rgba(0,0,0,0.02)", padding: "0.75rem", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>
               
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <div style={{ flex: 1 }}>
@@ -315,35 +398,75 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
               </div>
 
               {!isBreak && (
-                <>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <div style={{ flex: 2 }}>
-                      <label className="rpg-label">Subject</label>
-                      <input 
-                        type="text" 
-                        className="rpg-input" 
-                        value={subject} 
-                        onChange={(e) => setSubject(e.target.value)} 
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label className="rpg-label">Stat Focus</label>
-                      <select 
-                        className="rpg-select" 
-                        value={statCategory} 
-                        onChange={(e) => setStatCategory(e.target.value)}
-                      >
-                        <option value="INT">INT (Code/Sci)</option>
-                        <option value="WIS">WIS (Read/Lib)</option>
-                        <option value="STR">STR (Fit/Phys)</option>
-                        <option value="DEX">DEX (Art/Skill)</option>
-                        <option value="CHA">CHA (Speak/Lang)</option>
-                      </select>
-                    </div>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div style={{ flex: 2 }}>
+                    <label className="rpg-label">Subject Spot</label>
+                    <select 
+                      className="rpg-select" 
+                      value={subject} 
+                      onChange={(e) => handleSubjectChange(e.target.value)}
+                    >
+                      <option value="Python">Python Building</option>
+                      <option value="German">German Town</option>
+                      <option value="SQL">SQL Ruins</option>
+                      <option value="Custom">Custom Spot</option>
+                    </select>
                   </div>
-                </>
+                  <div style={{ flex: 1 }}>
+                    <label className="rpg-label">Stat Focus</label>
+                    <input 
+                      type="text" 
+                      className="rpg-input" 
+                      value={statCategory} 
+                      readOnly 
+                      style={{ background: "#f1ede2", cursor: "not-allowed" }}
+                    />
+                  </div>
+                </div>
               )}
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Energy levels & Active status effects */}
+      <div style={{ marginTop: "1.25rem", borderTop: "2px dashed #ecd6bc", paddingTop: "0.75rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: "bold", marginBottom: "0.3rem" }}>
+          <span style={{ color: "var(--color-text-dark)" }}>⚡ Hero Energy</span>
+          <span style={{ color: "var(--color-text-dark)" }}>{profile.energy} / 100</span>
+        </div>
+        <div className="stat-bar-track" style={{ height: "14px" }}>
+          <div 
+            className="stat-bar-fill" 
+            style={{ 
+              width: `${profile.energy}%`, 
+              background: profile.energy < 20 ? "linear-gradient(90deg, #f87171, #ef4444)" : "linear-gradient(90deg, #ffd43b, #fab005)",
+              transition: "width 0.3s ease" 
+            }}
+          />
+        </div>
+
+        {/* Energy status tags */}
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.6rem" }}>
+          {profile.energy < 20 && (
+            <span style={{ fontSize: "0.75rem", background: "#fee2e2", border: "1px solid #fca5a5", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "6px", fontWeight: "bold" }}>
+              🥱 Tired (-50% XP & Gold)
+            </span>
+          )}
+          {profile.sloth_active === 1 && (
+            <span style={{ fontSize: "0.75rem", background: "#fef3c7", border: "1px solid #fcd34d", color: "#d97706", padding: "0.15rem 0.45rem", borderRadius: "6px", fontWeight: "bold" }}>
+              🦥 Slothful (-25% Productivity)
+            </span>
+          )}
+          {profile.energy >= 50 && profile.sloth_active === 0 && (
+            <span style={{ fontSize: "0.75rem", background: "#dcfce7", border: "1px solid #86efac", color: "#15803d", padding: "0.15rem 0.45rem", borderRadius: "6px", fontWeight: "bold" }}>
+              💪 Fully Energetic
+            </span>
+          )}
+          {isResting && (
+            <span style={{ fontSize: "0.75rem", background: "#e0f2fe", border: "1px solid #7dd3fc", color: "#0369a1", padding: "0.15rem 0.45rem", borderRadius: "6px", fontWeight: "bold", animation: "pulseGlow 1.5s infinite" }}>
+              💤 Charging Energy...
+            </span>
           )}
         </div>
       </div>
@@ -359,7 +482,7 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <p style={{ fontSize: "0.95rem" }}>
-                You have completed your focus session on <strong>{subject}</strong>. Write down some notes about what you achieved.
+                You completed your focus session at the <strong>{subject === "Custom" ? "Custom Spot" : `${subject} Building`}</strong>. Write down some notes.
               </p>
 
               <div className="rpg-field">
@@ -386,7 +509,7 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
                 <textarea 
                   rows={3} 
                   className="rpg-textarea"
-                  placeholder="E.g., Finished Calculus Homework 3, worked on React state..."
+                  placeholder="What did you achieve during this focus cycle?"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
@@ -402,6 +525,23 @@ export const Pomodoro: React.FC<PomodoroProps> = ({ onSessionComplete }) => {
         </div>
       )}
 
+      {/* Zzz floating keyframes */}
+      <style>{`
+        @keyframes floatUp {
+          0% { transform: translateY(0px) scale(0.8); opacity: 0; }
+          50% { opacity: 0.8; }
+          100% { transform: translateY(-20px) translateX(8px) scale(1.3); opacity: 0; }
+        }
+        .zzz-particle {
+          position: absolute;
+          color: #3aa6eb;
+          font-family: var(--font-display);
+          font-size: 1.2rem;
+          font-weight: bold;
+          animation: floatUp 2s infinite ease-out;
+          pointer-events: none;
+        }
+      `}</style>
     </div>
   );
 };

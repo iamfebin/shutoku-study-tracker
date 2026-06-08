@@ -14,6 +14,17 @@ export interface HeroProfile {
   equipped_weapon: string | null;
   equipped_armor: string | null;
   equipped_scroll: string | null;
+  energy: number;
+  sloth_active: number; // 0 or 1
+  german_shards: number;
+  python_shards: number;
+  sql_shards: number;
+  key_fragments: number;
+  focus_orbs: number;
+  materials_python: number;
+  materials_german: number;
+  materials_sql: number;
+  princess_rescued: number; // 0 or 1
 }
 
 export interface ActivityLog {
@@ -60,13 +71,25 @@ class LocalStorageMockDb {
       equipped_weapon: null,
       equipped_armor: null,
       equipped_scroll: null,
+      energy: 100,
+      sloth_active: 0,
+      german_shards: 0,
+      python_shards: 0,
+      sql_shards: 0,
+      key_fragments: 0,
+      focus_orbs: 0,
+      materials_python: 0,
+      materials_german: 0,
+      materials_sql: 0,
+      princess_rescued: 0,
     };
     const data = localStorage.getItem("shutoku_hero_profile");
     if (!data) {
       localStorage.setItem("shutoku_hero_profile", JSON.stringify(defaultProfile));
       return defaultProfile;
     }
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    return { ...defaultProfile, ...parsed };
   }
 
   static saveProfile(profile: HeroProfile): void {
@@ -125,9 +148,42 @@ export async function initDb(): Promise<void> {
       charisma INTEGER DEFAULT 10,
       equipped_weapon TEXT DEFAULT NULL,
       equipped_armor TEXT DEFAULT NULL,
-      equipped_scroll TEXT DEFAULT NULL
+      equipped_scroll TEXT DEFAULT NULL,
+      energy INTEGER DEFAULT 100,
+      sloth_active INTEGER DEFAULT 0,
+      german_shards INTEGER DEFAULT 0,
+      python_shards INTEGER DEFAULT 0,
+      sql_shards INTEGER DEFAULT 0,
+      key_fragments INTEGER DEFAULT 0,
+      focus_orbs INTEGER DEFAULT 0,
+      materials_python INTEGER DEFAULT 0,
+      materials_german INTEGER DEFAULT 0,
+      materials_sql INTEGER DEFAULT 0,
+      princess_rescued INTEGER DEFAULT 0
     );
   `);
+
+  // Run migrations to add missing columns in case database exists from older versions
+  const migrations = [
+    "ALTER TABLE hero_profile ADD COLUMN energy INTEGER DEFAULT 100",
+    "ALTER TABLE hero_profile ADD COLUMN sloth_active INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN german_shards INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN python_shards INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN sql_shards INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN key_fragments INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN focus_orbs INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN materials_python INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN materials_german INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN materials_sql INTEGER DEFAULT 0",
+    "ALTER TABLE hero_profile ADD COLUMN princess_rescued INTEGER DEFAULT 0"
+  ];
+  for (const q of migrations) {
+    try {
+      await db.execute(q);
+    } catch (e) {
+      // Ignore errors if columns already exist
+    }
+  }
 
   // Seed default hero profile if not present
   const profiles = await db.select<HeroProfile[]>("SELECT * FROM hero_profile LIMIT 1");
@@ -136,9 +192,11 @@ export async function initDb(): Promise<void> {
       INSERT INTO hero_profile (
         level, current_xp, gold, current_node_id, 
         strength, intelligence, dexterity, wisdom, charisma,
-        equipped_weapon, equipped_armor, equipped_scroll
+        equipped_weapon, equipped_armor, equipped_scroll,
+        energy, sloth_active, german_shards, python_shards, sql_shards,
+        key_fragments, focus_orbs, materials_python, materials_german, materials_sql, princess_rescued
       )
-      VALUES (1, 0, 0, 1, 10, 10, 10, 10, 10, NULL, NULL, NULL);
+      VALUES (1, 0, 0, 1, 10, 10, 10, 10, 10, NULL, NULL, NULL, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     `);
   }
 }
@@ -176,8 +234,19 @@ export async function updateHeroProfile(profile: HeroProfile): Promise<void> {
       charisma = $9,
       equipped_weapon = $10,
       equipped_armor = $11,
-      equipped_scroll = $12
-     WHERE id = $13`,
+      equipped_scroll = $12,
+      energy = $13,
+      sloth_active = $14,
+      german_shards = $15,
+      python_shards = $16,
+      sql_shards = $17,
+      key_fragments = $18,
+      focus_orbs = $19,
+      materials_python = $20,
+      materials_german = $21,
+      materials_sql = $22,
+      princess_rescued = $23
+     WHERE id = $24`,
     [
       profile.level,
       profile.current_xp,
@@ -191,6 +260,17 @@ export async function updateHeroProfile(profile: HeroProfile): Promise<void> {
       profile.equipped_weapon,
       profile.equipped_armor,
       profile.equipped_scroll,
+      profile.energy,
+      profile.sloth_active,
+      profile.german_shards,
+      profile.python_shards,
+      profile.sql_shards,
+      profile.key_fragments,
+      profile.focus_orbs,
+      profile.materials_python,
+      profile.materials_german,
+      profile.materials_sql,
+      profile.princess_rescued,
       profile.id,
     ]
   );
