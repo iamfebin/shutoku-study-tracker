@@ -1,46 +1,66 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Play, Pause, RotateCcw, AlertTriangle, CheckCircle, Clock } from "lucide-react";
-import { ActivityLog, HeroProfile } from "../services/db";
-import { calculateSessionRewards } from "../utils/rpg";
+import { HeroProfile } from "../services/db";
 import baseIdle from "../assets/cozy/base_idle_strip9.png";
-import longhairIdle from "../assets/cozy/longhair_idle_strip9.png";
+import bowlhairIdle from "../assets/cozy/bowlhair_idle_strip9.png";
 
 interface PomodoroProps {
   profile: HeroProfile;
-  onSessionComplete: (
-    log: Omit<ActivityLog, "id">,
-    rewards: { focusOrbs: number; materials: number; gold: number; xp: number }
-  ) => void;
   isResting: boolean;
   onToggleRest: () => void;
-  onTravelToNode: (nodeId: number) => void;
+
+  // Lifted timer state
+  focusLength: number;
+  breakLength: number;
+  isBreak: boolean;
+  subject: string;
+  statCategory: string;
+  timeLeft: number;
+  isRunning: boolean;
+  distractions: number;
+  showReviewModal: boolean;
+
+  setFocusLength: (val: number) => void;
+  setBreakLength: (val: number) => void;
+  setSubject: (val: string) => void;
+  setStatCategory: (val: string) => void;
+  setIsRunning: (val: boolean) => void;
+
+  toggleTimer: () => void;
+  resetTimer: () => void;
+  logDistraction: () => void;
+  submitReview: (rating: number, notes: string) => void;
 }
 
 export const Pomodoro: React.FC<PomodoroProps> = ({
   profile,
-  onSessionComplete,
   isResting,
   onToggleRest,
-  onTravelToNode,
+
+  focusLength,
+  breakLength,
+  isBreak,
+  subject,
+  statCategory,
+  timeLeft,
+  isRunning,
+  distractions,
+  showReviewModal,
+
+  setFocusLength,
+  setBreakLength,
+  setSubject,
+  setStatCategory,
+  setIsRunning,
+
+  toggleTimer,
+  resetTimer,
+  logDistraction,
+  submitReview,
 }) => {
-  // Config
-  const [focusLength, setFocusLength] = useState<number>(25); // in minutes
-  const [breakLength, setBreakLength] = useState<number>(5); // in minutes
-  const [isBreak, setIsBreak] = useState<boolean>(false);
-  const [subject, setSubject] = useState<string>("Python");
-  const [statCategory, setStatCategory] = useState<string>("INT");
+  // Local Review modal state
   const [notes, setNotes] = useState<string>("");
-
-  // Running state
-  const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [distractions, setDistractions] = useState<number>(0);
-  const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [focusRating, setFocusRating] = useState<number>(5);
-
-  const timerRef = useRef<any>(null);
-  const totalDurationRef = useRef<number>(25 * 60);
-  const startTimeRef = useRef<Date | null>(null);
 
   // Auto-sync subject and stat categories
   const handleSubjectChange = (newSubject: string) => {
@@ -56,177 +76,17 @@ export const Pomodoro: React.FC<PomodoroProps> = ({
     }
   };
 
-  // Sound Synthesizers
-  const playChimeSound = () => {
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const now = ctx.currentTime;
-      
-      const playTone = (freq: number, start: number, duration: number) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.15, start);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + duration);
-      };
-
-      // RPG arpeggio (C5 -> E5 -> G5 -> C6)
-      playTone(523.25, now, 0.6);
-      playTone(659.25, now + 0.15, 0.6);
-      playTone(783.99, now + 0.3, 0.6);
-      playTone(1046.50, now + 0.45, 0.8);
-    } catch (e) {
-      console.error("Audio Web API not supported or blocked", e);
-    }
-  };
-
-  const playClickSound = () => {
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(180, ctx.currentTime);
-      gain.gain.setValueAtTime(0.03, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    } catch (e) {}
-  };
-
-  // Reset timer whenever lengths change and not running
-  useEffect(() => {
-    if (!isRunning) {
-      const mins = isBreak ? breakLength : focusLength;
-      setTimeLeft(mins * 60);
-      totalDurationRef.current = mins * 60;
-    }
-  }, [focusLength, breakLength, isBreak, isRunning]);
-
-  // Main tick loop
-  useEffect(() => {
-    if (isRunning) {
-      if (!startTimeRef.current && !isBreak) {
-        startTimeRef.current = new Date();
-      }
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            handleTimerComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isRunning]);
-
-  const handleTimerComplete = () => {
-    setIsRunning(false);
-    playChimeSound();
-
-    if (!isBreak) {
-      // Completed Focus Session -> Show rating and save to DB
-      setShowReviewModal(true);
-    } else {
-      // Completed Break Session -> Swap back to Focus
-      setIsBreak(false);
-      setTimeLeft(focusLength * 60);
-      totalDurationRef.current = focusLength * 60;
-      startTimeRef.current = null;
-      setDistractions(0);
-    }
-  };
-
-  const toggleTimer = () => {
-    if (isResting) return; // Cannot study while resting
-    playClickSound();
-    const willStart = !isRunning;
-    setIsRunning(willStart);
-
-    if (willStart) {
-      // Auto-commute / Travel to study spot
-      if (subject.toLowerCase() === "python") onTravelToNode(2);
-      else if (subject.toLowerCase() === "german") onTravelToNode(3);
-      else if (subject.toLowerCase() === "sql") onTravelToNode(4);
-    }
-  };
-
-  const resetTimer = () => {
-    playClickSound();
-    setIsRunning(false);
-    const mins = isBreak ? breakLength : focusLength;
-    setTimeLeft(mins * 60);
-    totalDurationRef.current = mins * 60;
-    startTimeRef.current = null;
-    setDistractions(0);
-  };
-
-  const logDistraction = () => {
-    playClickSound();
-    setDistractions((prev) => prev + 1);
-  };
-
-  const submitReview = () => {
-    const end = new Date();
-    const start = startTimeRef.current || new Date(end.getTime() - focusLength * 60 * 1000);
-    const durationMins = focusLength;
-    const isSloth = profile.sloth_active === 1;
-
-    // Calculate rewards using utility function
-    const rewards = calculateSessionRewards(
-      subject,
-      durationMins,
-      focusRating,
-      isSloth,
-      profile.energy
-    );
-
-    // Pass complete logs & rewards to callback
-    onSessionComplete(
-      {
-        subject,
-        stat_category: statCategory,
-        start_time: start.toISOString(),
-        end_time: end.toISOString(),
-        duration_minutes: durationMins,
-        distraction_count: distractions,
-        focus_rating: focusRating,
-        xp_gained: rewards.xp,
-        notes: notes,
-      },
-      rewards
-    );
-
-    // Reset UI state
-    setShowReviewModal(false);
+  const handleSubmitReview = () => {
+    submitReview(focusRating, notes);
     setNotes("");
-    setDistractions(0);
-    startTimeRef.current = null;
-    
-    // Shift automatically to Break
-    setIsBreak(true);
-    setTimeLeft(breakLength * 60);
-    totalDurationRef.current = breakLength * 60;
+    setFocusRating(5);
   };
 
   // SVG circular calculations
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
-  const progressPercent = (timeLeft / totalDurationRef.current) || 0;
+  const totalDuration = (isBreak ? breakLength : focusLength) * 60;
+  const progressPercent = (timeLeft / totalDuration) || 0;
   const strokeDashoffset = circumference - progressPercent * circumference;
 
   const formatTime = (secs: number) => {
@@ -294,17 +154,38 @@ export const Pomodoro: React.FC<PomodoroProps> = ({
               </>
             )}
             
-            {/* Animated pixel-art character */}
             <div 
-              className="pixel-hero-idle" 
               style={{ 
-                backgroundImage: `url(${isResting || isBreak ? longhairIdle : baseIdle})`,
+                position: "relative",
+                width: "16px",
+                height: "18px",
                 transform: "scale(3.5)",
+                transformOrigin: "center",
                 marginBottom: "0.5rem",
-                marginTop: "-0.75rem",
-                animationPlayState: isRunning || isResting ? "running" : "paused"
-              }} 
-            />
+                marginTop: "-0.75rem"
+              }}
+            >
+              <div 
+                className="pixel-hero-idle" 
+                style={{ 
+                  backgroundImage: `url(${baseIdle})`,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  animationPlayState: isRunning || isResting ? "running" : "paused"
+                }} 
+              />
+              <div 
+                className="pixel-hero-idle" 
+                style={{ 
+                  backgroundImage: `url(${bowlhairIdle})`,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  animationPlayState: isRunning || isResting ? "running" : "paused"
+                }} 
+              />
+            </div>
             <span style={{ fontSize: "2.3rem", fontWeight: "bold", fontFamily: "var(--font-display)", color: "var(--color-text-dark)", letterSpacing: "0.5px" }}>
               {isResting ? `${profile.energy}%` : formatTime(timeLeft)}
             </span>
@@ -516,7 +397,7 @@ export const Pomodoro: React.FC<PomodoroProps> = ({
               </div>
 
               <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                <button className="rpg-btn rpg-btn-primary" style={{ flex: 1 }} onClick={submitReview}>
+                <button className="rpg-btn rpg-btn-primary" style={{ flex: 1 }} onClick={handleSubmitReview}>
                   Log to Ledger & Get Reward
                 </button>
               </div>

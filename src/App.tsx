@@ -11,7 +11,7 @@ import {
   HeroProfile, 
   ActivityLog 
 } from "./services/db";
-import { addXp } from "./utils/rpg";
+import { addXp, calculateSessionRewards } from "./utils/rpg";
 import { Pomodoro } from "./components/Pomodoro";
 import { StatsPanel } from "./components/StatsPanel";
 import { RpgMap } from "./components/RpgMap";
@@ -36,6 +36,18 @@ function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("dashboard");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [dbError, setDbError] = useState<string | null>(null);
+
+  // Lifted Pomodoro Timer state
+  const [focusLength, setFocusLength] = useState<number>(25); // in minutes
+  const [breakLength, setBreakLength] = useState<number>(5); // in minutes
+  const [isBreak, setIsBreak] = useState<boolean>(false);
+  const [timerSubject, setTimerSubject] = useState<string>("Python");
+  const [timerStatCategory, setTimerStatCategory] = useState<string>("INT");
+  const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
+  const [timerIsRunning, setTimerIsRunning] = useState<boolean>(false);
+  const [distractions, setDistractions] = useState<number>(0);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
 
   // New RPG gameplay states
   const [demoMode, setDemoMode] = useState<boolean>(() => {
@@ -268,6 +280,9 @@ function App() {
     const updatedProfile = { ...profile };
     if (willRest) {
       updatedProfile.current_node_id = 1; // Travel to Home Base
+      if (timerIsRunning) {
+        setTimerIsRunning(false);
+      }
     }
 
     try {
@@ -498,6 +513,184 @@ function App() {
     }
   };
 
+  const playChimeSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const now = ctx.currentTime;
+      
+      const playTone = (freq: number, start: number, duration: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.15, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+
+      playTone(523.25, now, 0.6);
+      playTone(659.25, now + 0.15, 0.6);
+      playTone(783.99, now + 0.3, 0.6);
+      playTone(1046.50, now + 0.45, 0.8);
+    } catch (e) {
+      console.error("Audio Web API not supported or blocked", e);
+    }
+  };
+
+  const playClickSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(180, ctx.currentTime);
+      gain.gain.setValueAtTime(0.03, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (e) {}
+  };
+
+  // Synchronize timer duration when config lengths change (only when not running)
+  useEffect(() => {
+    if (!timerIsRunning) {
+      const mins = isBreak ? breakLength : focusLength;
+      setTimeLeft(mins * 60);
+    }
+  }, [focusLength, breakLength, isBreak, timerIsRunning]);
+
+  // Main timer tick loop
+  useEffect(() => {
+    let timerId: any = null;
+    if (timerIsRunning) {
+      if (!startTime && !isBreak) {
+        setStartTime(new Date());
+      }
+      timerId = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            handleTimerComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerId) clearInterval(timerId);
+    }
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [timerIsRunning, startTime, isBreak]);
+
+  const handleTimerComplete = () => {
+    setTimerIsRunning(false);
+    playChimeSound();
+
+    if (!isBreak) {
+      setShowReviewModal(true);
+    } else {
+      setIsBreak(false);
+      setTimeLeft(focusLength * 60);
+      setStartTime(null);
+      setDistractions(0);
+    }
+  };
+
+  const toggleTimer = () => {
+    if (isResting) return; // Cannot study while resting
+    playClickSound();
+    const willStart = !timerIsRunning;
+    setTimerIsRunning(willStart);
+
+    if (willStart) {
+      // Auto-commute / Travel to study spot
+      if (timerSubject.toLowerCase() === "python") handleTravelToNode(2);
+      else if (timerSubject.toLowerCase() === "german") handleTravelToNode(3);
+      else if (timerSubject.toLowerCase() === "sql") handleTravelToNode(4);
+    }
+  };
+
+  const resetTimer = () => {
+    playClickSound();
+    setTimerIsRunning(false);
+    const mins = isBreak ? breakLength : focusLength;
+    setTimeLeft(mins * 60);
+    setStartTime(null);
+    setDistractions(0);
+  };
+
+  const logDistraction = () => {
+    playClickSound();
+    setDistractions((prev) => prev + 1);
+  };
+
+  const submitReview = (focusRating: number, reviewNotes: string) => {
+    if (!profile) return;
+    const end = new Date();
+    const start = startTime || new Date(end.getTime() - focusLength * 60 * 1000);
+    const durationMins = focusLength;
+    const isSloth = profile.sloth_active === 1;
+
+    // Calculate rewards using utility function
+    const rewards = calculateSessionRewards(
+      timerSubject,
+      durationMins,
+      focusRating,
+      isSloth,
+      profile.energy
+    );
+
+    // Pass complete logs & rewards to callback
+    handleSessionComplete(
+      {
+        subject: timerSubject,
+        stat_category: timerStatCategory,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        duration_minutes: durationMins,
+        distraction_count: distractions,
+        focus_rating: focusRating,
+        xp_gained: rewards.xp,
+        notes: reviewNotes,
+      },
+      rewards
+    );
+
+    // Reset UI state
+    setShowReviewModal(false);
+    setDistractions(0);
+    setStartTime(null);
+    
+    // Shift automatically to Break
+    setIsBreak(true);
+    setTimeLeft(breakLength * 60);
+  };
+
+  const handleStartStudy = async (subject: string, nodeId: number) => {
+    if (isResting) {
+      setIsResting(false);
+    }
+    await handleTravelToNode(nodeId);
+    
+    // Configure and start session immediately without switching active tab
+    setTimerSubject(subject);
+    if (subject === "German") setTimerStatCategory("CHA");
+    else if (subject === "Python") setTimerStatCategory("INT");
+    else if (subject === "SQL") setTimerStatCategory("WIS");
+    else setTimerStatCategory("INT");
+    
+    setIsBreak(false);
+    setTimeLeft(focusLength * 60);
+    setStartTime(new Date());
+    setTimerIsRunning(true);
+  };
+
   if (dbError) {
     return (
       <div 
@@ -655,10 +848,30 @@ function App() {
               <div className="flex-col-gap">
                 <Pomodoro 
                   profile={profile}
-                  onSessionComplete={handleSessionComplete} 
                   isResting={isResting}
                   onToggleRest={handleToggleRest}
-                  onTravelToNode={handleTravelToNode}
+                  
+                  // Lifted timer state
+                  focusLength={focusLength}
+                  breakLength={breakLength}
+                  isBreak={isBreak}
+                  subject={timerSubject}
+                  statCategory={timerStatCategory}
+                  timeLeft={timeLeft}
+                  isRunning={timerIsRunning}
+                  distractions={distractions}
+                  showReviewModal={showReviewModal}
+                  
+                  setFocusLength={setFocusLength}
+                  setBreakLength={setBreakLength}
+                  setSubject={setTimerSubject}
+                  setStatCategory={setTimerStatCategory}
+                  setIsRunning={setTimerIsRunning}
+                  
+                  toggleTimer={toggleTimer}
+                  resetTimer={resetTimer}
+                  logDistraction={logDistraction}
+                  submitReview={submitReview}
                 />
 
                 {/* Daily Study Quest Goals */}
@@ -729,7 +942,20 @@ function App() {
           )}
 
           {activeTab === "map" && (
-            <RpgMap profile={profile} onUnlockGate={handleUnlockGate} />
+            <RpgMap 
+              profile={profile} 
+              onUnlockGate={handleUnlockGate} 
+              onStartStudy={handleStartStudy}
+              onToggleRest={handleToggleRest}
+              isResting={isResting}
+              
+              timerSubject={timerSubject}
+              timeLeft={timeLeft}
+              timerIsRunning={timerIsRunning}
+              timerIsBreak={isBreak}
+              showReviewModal={showReviewModal}
+              onTimerClick={() => setActiveTab("dashboard")}
+            />
           )}
 
           {activeTab === "shop" && (

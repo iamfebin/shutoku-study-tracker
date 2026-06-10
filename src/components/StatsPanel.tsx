@@ -3,6 +3,7 @@ import { Shield, Sword, Scroll, User, Award, Coins } from "lucide-react";
 import { HeroProfile } from "../services/db";
 import { getXpNeeded } from "../utils/rpg";
 import baseIdle from "../assets/cozy/base_idle_strip9.png";
+import bowlhairIdle from "../assets/cozy/bowlhair_idle_strip9.png";
 
 interface StatsPanelProps {
   profile: HeroProfile;
@@ -69,13 +70,34 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ profile }) => {
         <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
           <div className="hero-box">
             <div 
-              className="pixel-hero-idle" 
               style={{ 
-                backgroundImage: `url(${baseIdle})`,
+                position: "relative",
+                width: "16px",
+                height: "18px",
                 transform: "scale(3.5)",
+                transformOrigin: "center",
                 marginTop: "0.25rem"
-              }} 
-            />
+              }}
+            >
+              <div 
+                className="pixel-hero-idle" 
+                style={{ 
+                  backgroundImage: `url(${baseIdle})`,
+                  position: "absolute",
+                  top: 0,
+                  left: 0
+                }} 
+              />
+              <div 
+                className="pixel-hero-idle" 
+                style={{ 
+                  backgroundImage: `url(${bowlhairIdle})`,
+                  position: "absolute",
+                  top: 0,
+                  left: 0
+                }} 
+              />
+            </div>
           </div>
           <div>
             <h4 style={{ fontSize: "1.2rem", fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
